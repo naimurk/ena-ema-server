@@ -39,50 +39,17 @@ async function run() {
     });
 
     // Get all tasks (with optional filtering and searching)
-    // app.get("/api/tasks", async (req, res) => {
-    //   try {
-    //     const { status, priority, tags, search } = req.query;
-    //     let query = {};
-
-    //     // Filtering by status (Completed, Pending, All)
-    //     if (status) {
-    //       query.completed = status === "Completed";
-    //     }
-
-    //     // Filtering by priority
-    //     if (priority) {
-    //       query.priority = priority;
-    //     }
-
-    //     // Filtering by custom tags
-    //     if (tags) {
-    //       query.tags = { $in: tags.split(",") };
-    //     }
-
-    //     // Searching by task name or description
-    //     if (search) {
-    //       query.$or = [
-    //         { name: { $regex: search, $options: "i" } },
-    //         { description: { $regex: search, $options: "i" } },
-    //       ];
-    //     }
-
-    //     const tasks = await taskListCollection.find(query).toArray();
-    //     res.send(tasks);
-    //   } catch (error) {
-    //     res.status(500).send({ error: true, message: "Failed to fetch tasks" });
-    //   }
-    // });
+    
 
     app.get("/api/tasks", async (req, res) => {
       try {
-        const { status, priority, tags, search } = req.query;
+        const { completed, priority, tags, search } = req.query;
         console.log(search)
         let matchStage = {};
 
         // Filtering by status (Completed, Pending, All)
-        if (status) {
-          matchStage.completed = status === "Completed";
+        if (completed) {
+          matchStage.completed = completed === "true";
         }
 
         // Filtering by priority
@@ -123,6 +90,11 @@ async function run() {
                 tasks: { $push: "$$ROOT" }, // Push all task documents to the tasks array
               },
             },
+            {
+              $sort : {
+                _id : 1
+              }
+            }
             // {
             //   $project: {
             //     _id: 1,
