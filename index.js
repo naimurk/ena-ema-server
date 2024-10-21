@@ -39,12 +39,11 @@ async function run() {
     });
 
     // Get all tasks (with optional filtering and searching)
-    
 
     app.get("/api/tasks", async (req, res) => {
       try {
         const { completed, priority, tags, search } = req.query;
-        console.log(search)
+        console.log(search);
         let matchStage = {};
 
         // Filtering by status (Completed, Pending, All)
@@ -91,10 +90,10 @@ async function run() {
               },
             },
             {
-              $sort : {
-                _id : 1
-              }
-            }
+              $sort: {
+                _id: 1,
+              },
+            },
             // {
             //   $project: {
             //     _id: 1,
@@ -111,13 +110,31 @@ async function run() {
       }
     });
 
+    app.get("/api/tasks/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+        // console.log(id)
+        const task = await taskListCollection.findOne({
+          _id: new ObjectId(id),
+        });
+        res.send(task);
+      } catch (error) {
+        res.status(500).send({ error: true, message: "Failed to fetch task" });
+      }
+    });
+
     // Update a task
     app.put("/api/tasks/:id", async (req, res) => {
       try {
         const id = req.params.id;
-        const updatedTask = req.body;
+        const {_id, name, completed, reminder, description, tags, priority } =
+          req.body;
+
+        // console.log(updatedTask);
         const filter = { _id: new ObjectId(id) };
-        const updateDoc = { $set: updatedTask };
+        const updateDoc = {
+          $set: {  name, completed, reminder, description, tags, priority },
+        };
         const result = await taskListCollection.updateOne(filter, updateDoc);
         res.send(result);
       } catch (error) {
