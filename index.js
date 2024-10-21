@@ -23,7 +23,9 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
-    const taskListCollection = client.db("taskManagement").collection("taskList");
+    const taskListCollection = client
+      .db("taskManagement")
+      .collection("taskList");
 
     // Create a task
     app.post("/api/tasks", async (req, res) => {
@@ -37,35 +39,100 @@ async function run() {
     });
 
     // Get all tasks (with optional filtering and searching)
+    // app.get("/api/tasks", async (req, res) => {
+    //   try {
+    //     const { status, priority, tags, search } = req.query;
+    //     let query = {};
+
+    //     // Filtering by status (Completed, Pending, All)
+    //     if (status) {
+    //       query.completed = status === "Completed";
+    //     }
+
+    //     // Filtering by priority
+    //     if (priority) {
+    //       query.priority = priority;
+    //     }
+
+    //     // Filtering by custom tags
+    //     if (tags) {
+    //       query.tags = { $in: tags.split(",") };
+    //     }
+
+    //     // Searching by task name or description
+    //     if (search) {
+    //       query.$or = [
+    //         { name: { $regex: search, $options: "i" } },
+    //         { description: { $regex: search, $options: "i" } },
+    //       ];
+    //     }
+
+    //     const tasks = await taskListCollection.find(query).toArray();
+    //     res.send(tasks);
+    //   } catch (error) {
+    //     res.status(500).send({ error: true, message: "Failed to fetch tasks" });
+    //   }
+    // });
+
     app.get("/api/tasks", async (req, res) => {
       try {
         const { status, priority, tags, search } = req.query;
-        let query = {};
+        console.log(search)
+        let matchStage = {};
 
         // Filtering by status (Completed, Pending, All)
         if (status) {
-          query.completed = status === "Completed";
+          matchStage.completed = status === "Completed";
         }
 
         // Filtering by priority
         if (priority) {
-          query.priority = priority;
+          matchStage.priority = priority;
         }
 
         // Filtering by custom tags
         if (tags) {
-          query.tags = { $in: tags.split(",") };
+          matchStage.tags = { $in: tags.split(",") };
         }
 
         // Searching by task name or description
         if (search) {
-          query.$or = [
+          matchStage.$or = [
             { name: { $regex: search, $options: "i" } },
             { description: { $regex: search, $options: "i" } },
           ];
         }
 
-        const tasks = await taskListCollection.find(query).toArray();
+        // Building the aggregation pipeline
+        const tasks = await taskListCollection
+          .aggregate([
+            {
+              $match: matchStage, // Match stage to filter documents
+            },
+            {
+              $sort: {
+                completed: 1, // Sort by completed (false first, then true)
+              },
+            },
+
+            { $unwind: "$tags" },
+            {
+              $group: {
+                _id: "$tags", // Grouping by tags
+                count: { $sum: 1 }, // Count of tasks in each tag
+                tasks: { $push: "$$ROOT" }, // Push all task documents to the tasks array
+              },
+            },
+            // {
+            //   $project: {
+            //     _id: 1,
+            //     count: 1,
+            //     tasks: 1, // Include tasks array in the result
+            //   },
+            // },
+          ])
+          .toArray();
+
         res.send(tasks);
       } catch (error) {
         res.status(500).send({ error: true, message: "Failed to fetch tasks" });
@@ -124,7 +191,9 @@ async function run() {
         const result = await taskListCollection.updateOne(filter, updateDoc);
         res.send(result);
       } catch (error) {
-        res.status(500).send({ error: true, message: "Failed to mark task as complete" });
+        res
+          .status(500)
+          .send({ error: true, message: "Failed to mark task as complete" });
       }
     });
 
@@ -138,7 +207,9 @@ async function run() {
         const result = await taskListCollection.updateOne(filter, updateDoc);
         res.send(result);
       } catch (error) {
-        res.status(500).send({ error: true, message: "Failed to toggle reminder" });
+        res
+          .status(500)
+          .send({ error: true, message: "Failed to toggle reminder" });
       }
     });
 
