@@ -127,13 +127,13 @@ async function run() {
     app.put("/api/tasks/:id", async (req, res) => {
       try {
         const id = req.params.id;
-        const {_id, name, completed, reminder, description, tags, priority } =
+        const {_id, name, completed, reminder, description, tags, priority , dueDate } =
           req.body;
 
         // console.log(updatedTask);
         const filter = { _id: new ObjectId(id) };
         const updateDoc = {
-          $set: {  name, completed, reminder, description, tags, priority },
+          $set: {  name, completed, reminder, description, tags, priority , dueDate },
         };
         const result = await taskListCollection.updateOne(filter, updateDoc);
         res.send(result);
