@@ -11,7 +11,7 @@
 2. Navigate into the backend project directory:
 
    ```bash
-   cd backend-repo
+   cd server
    ```
 
 3. Install dependencies:
