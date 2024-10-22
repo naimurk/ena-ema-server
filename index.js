@@ -31,7 +31,8 @@ async function run() {
       try {
         const task = req.body;
         const result = await taskListCollection.insertOne(task);
-        res.status(201).send(result);
+        // res.send(result)
+        res.status(201).json({ success: true, data: result });
       } catch (error) {
         res.status(500).send({ error: true, message: "Failed to create task" });
       }
@@ -151,7 +152,7 @@ async function run() {
           },
         };
         const result = await taskListCollection.updateOne(filter, updateDoc);
-        res.send(result);
+        res.status(200).send(result);
       } catch (error) {
         res.status(500).send({ error: true, message: "Failed to update task" });
       }
