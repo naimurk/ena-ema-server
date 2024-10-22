@@ -8,8 +8,7 @@ const { MongoClient, ObjectId, ServerApiVersion } = require("mongodb");
 app.use(express.json());
 app.use(cors());
 
-const uri =
-  "mongodb+srv://ena-ema:bNMLsgaENgFOnag4@cluster0.50l1tkw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const uri = `mongodb+srv://${process.env.DB_NAME}:${process.env.DB_PASS}@cluster0.50l1tkw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -127,13 +126,29 @@ async function run() {
     app.put("/api/tasks/:id", async (req, res) => {
       try {
         const id = req.params.id;
-        const {_id, name, completed, reminder, description, tags, priority , dueDate } =
-          req.body;
+        const {
+          _id,
+          name,
+          completed,
+          reminder,
+          description,
+          tags,
+          priority,
+          dueDate,
+        } = req.body;
 
         // console.log(updatedTask);
         const filter = { _id: new ObjectId(id) };
         const updateDoc = {
-          $set: {  name, completed, reminder, description, tags, priority , dueDate },
+          $set: {
+            name,
+            completed,
+            reminder,
+            description,
+            tags,
+            priority,
+            dueDate,
+          },
         };
         const result = await taskListCollection.updateOne(filter, updateDoc);
         res.send(result);
