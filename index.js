@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 8080;
 require("dotenv").config();
 const { MongoClient, ObjectId, ServerApiVersion } = require("mongodb");
 
@@ -32,7 +32,9 @@ async function run() {
         const task = req.body;
         const result = await taskListCollection.insertOne(task);
         // res.send(result)
-        res.status(201).json({ success: true, data: result });
+        // res.status(201).json({ success: true, data: result });
+        // console.log({ task });
+        res.send(result);
       } catch (error) {
         res.status(500).send({ error: true, message: "Failed to create task" });
       }
@@ -152,7 +154,7 @@ async function run() {
           },
         };
         const result = await taskListCollection.updateOne(filter, updateDoc);
-        res.status(200).send(result);
+        res.send(result);
       } catch (error) {
         res.status(500).send({ error: true, message: "Failed to update task" });
       }
@@ -217,14 +219,19 @@ async function run() {
           .send({ error: true, message: "Failed to toggle reminder" });
       }
     });
+    app.get("/", (req, res) => {
+      res.send("ena-ema is running");
+    });
+    
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
 
     console.log("Backend connected successfully to MongoDB");
   } finally {
     // No need to close the connection explicitly
   }
 }
-run().catch(console.dir);
+run()
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+
